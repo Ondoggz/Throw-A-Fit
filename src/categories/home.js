@@ -1,4 +1,8 @@
+import { useNavigate } from "react-router-dom";
+
 export default function Home() {
+  const navigate = useNavigate();
+
   return (
     <div
       style={{
@@ -50,6 +54,7 @@ export default function Home() {
       >
         {/* Closet button */}
         <button
+          onClick={() => navigate("/closet")}
           style={{
             width: "180px",
             height: "50px",
@@ -84,6 +89,7 @@ export default function Home() {
 
         {/* Upload button */}
         <button
+          onClick={() => navigate("/upload")}
           style={{
             width: "180px",
             height: "50px",
