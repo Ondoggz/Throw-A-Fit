@@ -19,7 +19,7 @@ export default function Home() {
           width: "100%",
           height: "10%",
           position: "absolute",
-          top: 0,
+          top: 80,
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
@@ -28,9 +28,9 @@ export default function Home() {
         <div
           style={{
             color: "black",
-            fontSize: "2.5rem",
-            fontFamily: "Josefin Sans, serif",
-            fontStyle: "italic",
+            fontSize: "5rem",
+            fontFamily: "Inter",
+            fontStyle: "Bold",
             fontWeight: 600,
             textAlign: "center",
           }}
@@ -45,7 +45,7 @@ export default function Home() {
           width: "100%",
           height: "20%",
           position: "absolute",
-          bottom: "5%",
+          bottom: 60,
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
