@@ -2,6 +2,9 @@ This is the main repository for our group's app Throw A Fit.
 ## TEAM MEMBERS
 -Emma Lene Ejera
 
+TEAM MEMBERS:
+Louis Ondrej L. Llamas
+
 ## MILESTONE 1: (11-03)
 -we finished making the API we need for categorizing our clothes and this is the repository link for the API: https://github.com/Bysssas/ThrowAFitAPI.git
 -we separated the repository.
