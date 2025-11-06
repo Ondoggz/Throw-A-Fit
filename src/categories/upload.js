@@ -2,18 +2,40 @@ import { useState } from "react";
 
 export default function Upload() {
   const [file, setFile] = useState(null);
+  const [dragActive, setDragActive] = useState(false);
 
+  // handle file selection from input
   const handleFileChange = (e) => {
     setFile(e.target.files[0]);
   };
 
+  // handle drag and drop events
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    setDragActive(true);
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    setDragActive(false);
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setDragActive(false);
+    const droppedFile = e.dataTransfer.files[0];
+    if (droppedFile) {
+      setFile(droppedFile);
+    }
+  };
+
+  // Handl upload click
   const handleUpload = () => {
     if (file) {
-      // Here you can implement your upload logic
       console.log("Uploading file:", file.name);
       alert(`Uploading: ${file.name}`);
     } else {
-      alert("Please select a file first!");
+      alert("Please select or drag a file first!");
     }
   };
 
@@ -26,86 +48,101 @@ export default function Upload() {
         background: "white",
         overflow: "hidden",
         margin: "0 auto",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
       }}
     >
-      {/* Main card container */}
+      {/* Upload Card */}
       <div
         style={{
-          width: "719px",
-          height: "401px",
-          left: "240px",
-          top: "114px",
-          position: "absolute",
-          overflow: "hidden",
+          width: "700px",
+          height: "400px",
+          background: "rgba(217, 217, 217, 0.4)",
+          borderRadius: "20px",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: "20px",
+          border: dragActive ? "3px dashed hotpink" : "3px dashed #aaa",
+          transition: "0.3s ease",
         }}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
       >
+        <h1 style={{ fontFamily: "Arial", color: "#1E1E1E" }}>
+          Upload your Clothes!
+        </h1>
+
+        <input
+          type="file"
+          accept="image/*"
+          onChange={handleFileChange}
+          style={{ display: "none" }}
+          id="fileInput"
+        />
+
+        {/* Buttons Row */}
         <div
           style={{
-            width: "679px",
-            height: "367px",
-            left: "20px",
-            top: "17px",
-            position: "absolute",
-            background: "rgba(217, 217, 217, 0.4)",
             display: "flex",
-            flexDirection: "column",
+            flexDirection: "row",
+            gap: "15px",
             alignItems: "center",
-            justifyContent: "center",
-            gap: "20px",
           }}
         >
-          <h1 style={{ fontFamily: "Arial" }}>Upload your Clothes!</h1>
-          <input type="file" onChange={handleFileChange} />
-          <button onClick={handleUpload}>Upload</button>
-        </div>
-
-        {/* Decorative box */}
-        <div
-          style={{
-            width: "48px",
-            height: "48px",
-            left: "338px",
-            top: "176px",
-            position: "absolute",
-            overflow: "hidden",
-          }}
-        >
-          <div
+          <label
+            htmlFor="fileInput"
             style={{
-              width: "36px",
-              height: "36px",
-              left: "6px",
-              top: "6px",
-              position: "absolute",
-              outline: "4px #1E1E1E solid",
-              outlineOffset: "-2px",
+              background: "#ff69b4",
+              color: "white",
+              padding: "10px 20px",
+              borderRadius: "10px",
+              cursor: "pointer",
+              fontWeight: "bold",
             }}
-          ></div>
-        </div>
-      </div>
+          >
+            Choose File
+          </label>
 
-      {/* Small decorative square */}
-      <div
-        style={{
-          width: "20px",
-          height: "20px",
-          left: "1154px",
-          top: "16px",
-          position: "absolute",
-          overflow: "hidden",
-        }}
-      >
-        <div
-          style={{
-            width: "10px",
-            height: "10px",
-            left: "5px",
-            top: "5px",
-            position: "absolute",
-            outline: "2px #1E1E1E solid",
-            outlineOffset: "-1px",
-          }}
-        ></div>
+          <button
+            onClick={handleUpload}
+            style={{
+              background: "#1E1E1E",
+              color: "white",
+              padding: "10px 20px",
+              borderRadius: "10px",
+              cursor: "pointer",
+              fontWeight: "bold",
+            }}
+          >
+            Upload
+          </button>
+        </div>
+
+        {file && (
+          <div style={{ textAlign: "center" }}>
+            <p style={{ fontWeight: "bold" }}>{file.name}</p>
+            {file.type.startsWith("image/") && (
+              <img
+                src={URL.createObjectURL(file)}
+                alt="Preview"
+                style={{
+                  maxWidth: "200px",
+                  maxHeight: "200px",
+                  borderRadius: "10px",
+                  marginTop: "10px",
+                }}
+              />
+            )}
+          </div>
+        )}
+
+        <p style={{ color: "#666", fontSize: "14px" }}>
+          or drag and drop your file here
+        </p>
       </div>
     </div>
   );
