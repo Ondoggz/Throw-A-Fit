@@ -25,3 +25,4 @@ This is the main repository for our group's app Throw A Fit.
 [ ] FINISH
 
 ## Throw A Fit Project Milestones
+Members: Nicole Jean Salagantin (Bysssas)
