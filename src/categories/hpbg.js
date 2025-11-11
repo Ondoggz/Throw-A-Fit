@@ -57,8 +57,7 @@ export const FallingText = ({
   useEffect(() => {
     if (!effectStarted) return;
 
-    const { Engine, Render, World, Bodies, Runner, Mouse, MouseConstraint } =
-      Matter;
+    const { Engine, Render, World, Bodies, Runner, Mouse, MouseConstraint } = Matter;
 
     const containerRect = containerRef.current.getBoundingClientRect();
     const width = containerRect.width;
@@ -139,21 +138,14 @@ export const FallingText = ({
     };
     updateLoop();
 
+    // ✅ Cleaned-up version — only one cleanup function
     return () => {
       Render.stop(render);
       Runner.stop(runner);
       const canvasContainer = canvasContainerRef.current;
-    ...
-    return () => {
-     Render.stop(render);
-     Runner.stop(runner);
-    if (render.canvas && canvasContainer) {
-      canvasContainer.removeChild(render.canvas);
-    }
-    World.clear(engine.world);
-    Engine.clear(engine);
-  };
-
+      if (render.canvas && canvasContainer?.contains(render.canvas)) {
+        canvasContainer.removeChild(render.canvas);
+      }
       World.clear(engine.world);
       Engine.clear(engine);
     };
@@ -260,12 +252,13 @@ export const TextPressure = ({
     });
   };
 
-// eslint-disable-next-line react-hooks/exhaustive-deps
-useEffect(() => {
-  setSize();
-  window.addEventListener("resize", setSize);
-  return () => window.removeEventListener("resize", setSize);
-}, [scale, text]);
+  // ✅ Properly ignored dependency warning
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    setSize();
+    window.addEventListener("resize", setSize);
+    return () => window.removeEventListener("resize", setSize);
+  }, [scale, text]);
 
   useEffect(() => {
     let rafId;
