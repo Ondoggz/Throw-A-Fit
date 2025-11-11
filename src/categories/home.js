@@ -23,9 +23,9 @@ export default function Home() {
             trigger="click"
             backgroundColor="transparent"
             wireframes={false}
-            gravity={2}
+            gravity={1}
             fontSize="5rem"
-            mouseConstraintStiffness={2}
+            mouseConstraintStiffness={0.9}
           />
         )}
       </div>
