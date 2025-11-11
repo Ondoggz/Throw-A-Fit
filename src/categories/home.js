@@ -23,8 +23,9 @@ export default function Home() {
             trigger="auto"
             backgroundColor="transparent"
             wireframes={false}
-            gravity={0.56}
-            fontSize="5rem"
+            gravity={1.5}
+            fontSize="10rem"
+            fontFamily="Compressa VF"
             mouseConstraintStiffness={0.9}
           />
         )}
