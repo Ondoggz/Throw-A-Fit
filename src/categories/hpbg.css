@@ -95,6 +95,7 @@
   justify-content: center;
   align-items: flex-end; /* ✅ text sits at bottom */
   text-align: center;
+  padding-top: 50%;
   cursor: pointer;
 }
 
