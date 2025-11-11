@@ -8,7 +8,7 @@ export default function Home() {
   return (
     <div className="home-container">
       <div className="home-header">
-        <TextPressure text="Your Title Here" />
+        <TextPressure text="THROW A FIT" />
       </div>
 
       {/* Footer / Buttons */}
