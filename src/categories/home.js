@@ -23,7 +23,7 @@ export default function Home() {
             trigger="auto"
             backgroundColor="transparent"
             wireframes={false}
-            gravity={2}
+            gravity={0.56}
             fontSize="5rem"
             mouseConstraintStiffness={0.1}
           />
