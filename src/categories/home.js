@@ -1,37 +1,14 @@
 import { useNavigate } from "react-router-dom";
-import TextPressure from "./hpbg";
 import "./hpbg.css";
+import TextPressure from "./hpbg";
 
 export default function Home() {
   const navigate = useNavigate();
 
   return (
-    <div
-      className="home-container"
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'center',
-        alignItems: 'center',
-        minHeight: '100vh',
-        padding: '20px',
-        boxSizing: 'border-box',
-      }}
-    >
-      {/* Animated Text */}
-      <div style={{ position: 'relative', width: '100%', maxWidth: '1200px', flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-        <TextPressure
-          text="Throw A Fit"
-          flex={true}
-          alpha={false}
-          stroke={false}
-          width={true}
-          weight={true}
-          italic={true}
-          textColor="#ffffff"
-          strokeColor="#ff0000"
-          minFontSize={36}
-        />
+    <div className="home-container">
+      <div className="home-header">
+        <TextPressure text="Your Title Here" />
       </div>
 
       {/* Footer / Buttons */}
