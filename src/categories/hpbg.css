@@ -94,7 +94,6 @@
   display: flex;
   justify-content: center;
   align-items: flex-end; /* ✅ text sits at bottom */
-  padding-bottom: 5vh; /* ✅ slight offset from the bottom */
   text-align: center;
   cursor: pointer;
 }

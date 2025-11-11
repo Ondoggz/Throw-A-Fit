@@ -23,9 +23,9 @@ export default function Home() {
             trigger="auto"
             backgroundColor="transparent"
             wireframes={false}
-            gravity={0.56}
+            gravity={1}
             fontSize="10rem"
-            mouseConstraintStiffness={0.9}
+            mouseConstraintStiffness={0.3}
           />
         )}
       </div>
