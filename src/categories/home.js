@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./hpbg.css";
 import { TextPressure, FallingText } from "./hpbg";
