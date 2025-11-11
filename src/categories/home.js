@@ -1,3 +1,6 @@
+import LightRays from "./hpbg";
+import "./hpbg.css";
+
 export default function Home() {
   return (
     <div
@@ -9,6 +12,28 @@ export default function Home() {
         overflow: "hidden",
       }}
     >
+      {/* Light rays background (behind everything) */}
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          zIndex: 0,
+        }}
+      >
+        <LightRays
+          raysOrigin="top-center"
+          raysColor="#00ffff"
+          raysSpeed={1.5}
+          lightSpread={0.8}
+          rayLength={1.2}
+          followMouse={true}
+          mouseInfluence={0.1}
+          noiseAmount={0.1}
+          distortion={0.05}
+          className="custom-rays"
+        />
+      </div>
+
       {/* Header */}
       <div
         style={{
@@ -19,6 +44,7 @@ export default function Home() {
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
+          zIndex: 2, // ✅ sits above rays
         }}
       >
         <div
@@ -46,6 +72,7 @@ export default function Home() {
           justifyContent: "center",
           alignItems: "center",
           gap: "2rem",
+          zIndex: 2, // ✅ sits above rays
         }}
       >
         {/* Closet button */}
@@ -60,7 +87,10 @@ export default function Home() {
             fontFamily: "SF Pro, sans-serif",
             color: "#4C4C4C",
             cursor: "pointer",
+            transition: "background 0.2s",
           }}
+          onMouseEnter={(e) => (e.target.style.background = "rgba(0,0,0,0.1)")}
+          onMouseLeave={(e) => (e.target.style.background = "rgba(0,0,0,0.05)")}
         >
           Closet
         </button>
@@ -77,7 +107,10 @@ export default function Home() {
             fontSize: "1rem",
             fontFamily: "SF Pro, sans-serif",
             cursor: "pointer",
+            transition: "background 0.2s",
           }}
+          onMouseEnter={(e) => (e.target.style.background = "#005FCC")}
+          onMouseLeave={(e) => (e.target.style.background = "#007AFF")}
         >
           Throw a Fit
         </button>
@@ -94,7 +127,10 @@ export default function Home() {
             fontFamily: "SF Pro, sans-serif",
             color: "#4C4C4C",
             cursor: "pointer",
+            transition: "background 0.2s",
           }}
+          onMouseEnter={(e) => (e.target.style.background = "rgba(0,0,0,0.1)")}
+          onMouseLeave={(e) => (e.target.style.background = "rgba(0,0,0,0.05)")}
         >
           Upload
         </button>
