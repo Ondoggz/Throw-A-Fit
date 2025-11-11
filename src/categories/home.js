@@ -1,7 +1,13 @@
+<<<<<<< HEAD
 import LightRays from "./hpbg";
 import "./hpbg.css";
+=======
+import { useNavigate } from "react-router-dom";
+>>>>>>> 867e920e5cebf3bfef64afc1977bdefb688874e4
 
 export default function Home() {
+  const navigate = useNavigate();
+
   return (
     <div
       style={{
@@ -40,7 +46,7 @@ export default function Home() {
           width: "100%",
           height: "10%",
           position: "absolute",
-          top: 0,
+          top: 80,
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
@@ -50,9 +56,9 @@ export default function Home() {
         <div
           style={{
             color: "black",
-            fontSize: "2.5rem",
-            fontFamily: "Josefin Sans, serif",
-            fontStyle: "italic",
+            fontSize: "5rem",
+            fontFamily: "Inter",
+            fontStyle: "Bold",
             fontWeight: 600,
             textAlign: "center",
           }}
@@ -67,7 +73,7 @@ export default function Home() {
           width: "100%",
           height: "20%",
           position: "absolute",
-          bottom: "5%",
+          bottom: 60,
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
@@ -77,6 +83,7 @@ export default function Home() {
       >
         {/* Closet button */}
         <button
+          onClick={() => navigate("/closet")}
           style={{
             width: "180px",
             height: "50px",
@@ -117,6 +124,7 @@ export default function Home() {
 
         {/* Upload button */}
         <button
+          onClick={() => navigate("/upload")}
           style={{
             width: "180px",
             height: "50px",
