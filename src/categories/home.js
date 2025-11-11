@@ -20,13 +20,12 @@ export default function Home() {
         ) : (
           <FallingText
             text={`Throw A Fit`}
-            trigger="auto"
+            trigger="click"
             backgroundColor="transparent"
             wireframes={false}
-            gravity={1.5}
-            fontSize="10rem"
-            fontFamily="Compressa VF"
-            mouseConstraintStiffness={0.9}
+            gravity={2}
+            fontSize="5rem"
+            mouseConstraintStiffness={2}
           />
         )}
       </div>
