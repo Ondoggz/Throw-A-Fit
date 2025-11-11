@@ -43,7 +43,7 @@ export default function Home() {
           Throw a Fit
         </button>
 
-        <button className="home-btn secondary" onClick={() => navigate("/upload")}>
+        <button type="button" className="home-btn secondary" onClick={() => navigate("/upload")}>
           Upload
         </button>
       </div>
