@@ -11,13 +11,6 @@
   align-items: center;
 }
 
-/* WebGL light rays (on top of spotlight) */
-.light-rays-wrapper {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-}
-
 /* Header */
 .home-header {
   position: absolute;
