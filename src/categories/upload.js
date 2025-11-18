@@ -29,15 +29,31 @@ export default function Upload() {
     }
   };
 
-  // Handl upload click
-  const handleUpload = () => {
-    if (file) {
-      console.log("Uploading file:", file.name);
-      alert(`Uploading: ${file.name}`);
-    } else {
-      alert("Please select or drag a file first!");
-    }
-  };
+const handleUpload = async () => {
+  if (!file) {
+    alert("Please select or drag a file first!");
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append("image", file);
+  formData.append("category", "tops"); // or user-selected category later
+
+  try {
+    const res = await fetch("https://throwafit.onrender.com/api/upload", {
+      method: "POST",
+      body: formData
+    });
+
+    const data = await res.json();
+    console.log("CLEAN IMAGE URL:", data.imageUrl);
+    alert("Upload complete!");
+
+  } catch (error) {
+    console.error(error);
+    alert("Upload failed.");
+  }
+};
 
   return (
     <div
