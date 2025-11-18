@@ -40,7 +40,7 @@ export default function Upload() {
     formData.append("category", "tops"); 
 
     try {
-      const res = await fetch("https://throwafit.onrender.com/api/upload", {
+     const res = await fetch("https://throw-a-fit.onrender.com/api/upload", {
         method: "POST",
         // Do NOT set Content-Type header when using FormData, 
         // the browser sets it automatically with the correct boundary.
