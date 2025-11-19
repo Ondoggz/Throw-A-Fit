@@ -4,7 +4,10 @@
   height: 100vh;
   position: relative;
   overflow: hidden;
-  background: #0a0612;
+
+  /* Your recreated gradient as the background */
+  background: linear-gradient(to top, #141c7b, #5560c5);
+
   color: white;
   display: flex;
   justify-content: center;
