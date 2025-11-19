@@ -19,6 +19,16 @@ export default function Home() {
         hoverFillColor='#222'
       />
 
+      {/* ---------- TOP RIGHT BUTTONS ---------- */}
+      <div className="top-right-btns">
+        <button className="home-btn secondary" onClick={() => setShowSignup(true)}>
+          Sign Up
+        </button>
+        <button className="home-btn primary" onClick={() => setShowLogin(true)}>
+          Login
+        </button>
+      </div>
+
       {/* HEADER */}
       <div className="home-header" onClick={() => setFallen(true)}>
         {!fallen ? (
@@ -41,35 +51,38 @@ export default function Home() {
         )}
       </div>
 
-      {/* FOOTER BUTTONS */}
-      <div
-        className="home-footer"
-        style={{ marginTop: "40px", display: "flex", gap: "20px" }}
-      >
-        <button
-          type="button"
-          className="home-btn secondary"
-          onClick={() => navigate("/closet")}
-        >
-          Closet
-        </button>
-
-        <button
-          type="button"
-          className="home-btn primary"
-          onClick={() => navigate("/upload")}
-        >
-          Throw a Fit
-        </button>
-
-        <button
-          type="button"
-          className="home-btn secondary"
-          onClick={() => navigate("/upload")}
-        >
-          Upload
-        </button>
+      {/* ---------- FOOTER BUTTONS ---------- */}
+      <div className="home-footer">
+        <button className="home-btn secondary" onClick={() => navigate("/closet")}>Closet</button>
+        <button className="home-btn primary" onClick={() => navigate("/upload")}>Throw a Fit</button>
+        <button className="home-btn secondary" onClick={() => navigate("/upload")}>Upload</button>
       </div>
+
+      {/* ---------- SIGNUP POPUP ---------- */}
+      {showSignup && (
+        <div className="popup-overlay">
+          <div className="popup-box">
+            <div className="popup-header">Sign Up</div>
+            <input type="text" placeholder="Username" className="popup-input" />
+            <input type="password" placeholder="Password" className="popup-input" />
+            <button className="popup-btn" onClick={() => navigate("/signup")}>Create Account</button>
+            <button className="popup-close" onClick={() => setShowSignup(false)}>Close</button>
+          </div>
+        </div>
+      )}
+
+      {/* ---------- LOGIN POPUP ---------- */}
+      {showLogin && (
+        <div className="popup-overlay">
+          <div className="popup-box">
+            <div className="popup-header">Login</div>
+            <input type="text" placeholder="Username" className="popup-input" />
+            <input type="password" placeholder="Password" className="popup-input" />
+            <button className="popup-btn" onClick={() => navigate("/login")}>Login</button>
+            <button className="popup-close" onClick={() => setShowLogin(false)}>Close</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
