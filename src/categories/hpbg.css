@@ -5,8 +5,17 @@
   position: relative;
   overflow: hidden;
 
-  /* Your recreated gradient as the background */
-  background: linear-gradient(to top, #141c7b, #5560c5);
+  /* NEW GRADIENT HERE */
+  background: linear-gradient(
+    to right,
+    #007bff,
+    #3f9cff,
+    #7fbfff,
+    #bfe0ff,
+    #e6f3ff,
+    #f2f8ff,
+    #ffffff
+  );
 
   color: white;
   display: flex;

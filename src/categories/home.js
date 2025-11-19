@@ -16,7 +16,7 @@ export default function Home() {
           <TextPressure
             text="Throw A Fit"
             fontFamily="Compressa VF"
-            textColor="#FFFFFF"
+            textColor="#e44a8dff"
             strokeColor="#FF0000"
           />
         ) : (
