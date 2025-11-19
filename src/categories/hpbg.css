@@ -5,16 +5,17 @@
   position: relative;
   overflow: hidden;
 
-  /* NEW GRADIENT HERE */
   background: linear-gradient(
     to right,
-    #007bff,
+    #007bff,   /* darkest (left) */
     #3f9cff,
     #7fbfff,
+    #bfe0ff,   /* light → moving toward center */
+    #e6f3ff,   /* LIGHTEST CENTER */
     #bfe0ff,
-    #e6f3ff,
-    #f2f8ff,
-    #ffffff
+    #7fbfff,
+    #3f9cff,
+    #007bff    /* darkest (right) */
   );
 
   color: white;
