@@ -4,10 +4,10 @@ import { FaUserCircle } from 'react-icons/fa';
 import { motion, useInView } from 'framer-motion';
 import './closet.css';
 
-// ✅ Your actual backend URL
-const BASE_API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000";
+// Load API URL from React environment variable
+const BASE_API_URL = process.env.REACT_APP_API_URL || "http://localhost:3000";
 
-// ✅ Correct endpoint map based on your backend routes
+// Correct endpoint map
 const ENDPOINT_MAP = {
     Tops: '/items/tops',
     Bottoms: '/items/bottoms',
