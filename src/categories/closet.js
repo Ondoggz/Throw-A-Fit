@@ -2,10 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaUserCircle } from 'react-icons/fa'; 
 import './closet.css'; 
-
-// Import the new components
-import AnimatedList from './AnimatedList'; 
-// Assuming AnimatedItem is defined within AnimatedList, so we don't import it directly
+import AnimatedList from './closet.css'; 
 
 // --- DUMMY DATA ---
 const categoriesData = [
