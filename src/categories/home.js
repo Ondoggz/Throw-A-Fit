@@ -3,91 +3,169 @@ import { useNavigate } from "react-router-dom";
 import "./hpbg.css";
 import { TextPressure, FallingText } from "./hpbg";
 import Squares from './hpbg';
-  
 
 export default function Home() {
-  const navigate = useNavigate();
-  const [fallen, setFallen] = useState(false);
-
-  // 🌟 FIX ADDED HERE: Defining the state variables that were causing the 'no-undef' errors.
+  const navigate = useNavigate();
+  const [fallen, setFallen] = useState(false);
   const [showSignup, setShowSignup] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
-  // -----------------------------------------------------------------------------------
 
-  return (
-    <div className="home-container">
-      <Squares 
-        speed={0.5} 
-        squareSize={40}
-        direction='diagonal'
-        borderColor='#fff'
-        hoverFillColor='#222'
-      />
+  // Input states
+  const [signupUsername, setSignupUsername] = useState("");
+  const [signupPassword, setSignupPassword] = useState("");
+  const [loginUsername, setLoginUsername] = useState("");
+  const [loginPassword, setLoginPassword] = useState("");
 
-      {/* ---------- TOP RIGHT BUTTONS ---------- */}
-      <div className="top-right-btns">
-        <button className="home-btn secondary" onClick={() => setShowSignup(true)}>
-          Sign Up
-        </button>
-        <button className="home-btn primary" onClick={() => setShowLogin(true)}>
-          Login
-        </button>
-      </div>
+  // Feedback
+  const [message, setMessage] = useState("");
 
-      {/* HEADER */}
-      <div className="home-header" onClick={() => setFallen(true)}>
-        {!fallen ? (
-          <TextPressure
-            text="Throw A Fit"
-            fontFamily="Compressa VF"
-            textColor="#e44a8dff"
-            strokeColor="#FF0000"
-          />
-        ) : (
-          <FallingText
-            text="Throw A Fit"
-            trigger="auto"
-            backgroundColor="transparent"
-            wireframes={false}
-            gravity={0.56}
-            fontSize="5rem"
-            mouseConstraintStiffness={0.9}
-          />
-        )}
-      </div>
+  const API_URL = process.env.REACT_APP_API_URL;
 
-      {/* ---------- FOOTER BUTTONS ---------- */}
-      <div className="home-footer">
-        <button className="home-btn secondary" onClick={() => navigate("/closet")}>Closet</button>
-        <button className="home-btn primary" onClick={() => navigate("/upload")}>Throw a Fit</button>
-        <button className="home-btn secondary" onClick={() => navigate("/upload")}>Upload</button>
-      </div>
+  // -------- SIGNUP FUNCTION --------
+  const handleSignup = async () => {
+    try {
+      const res = await fetch(`${API_URL}/auth/signup`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: signupUsername, password: signupPassword })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setMessage("Signup successful! You can now log in.");
+        setShowSignup(false);
+        setSignupUsername("");
+        setSignupPassword("");
+      } else {
+        setMessage(data.msg || "Signup failed");
+      }
+    } catch (err) {
+      console.error(err);
+      setMessage("Server error during signup");
+    }
+  };
 
-      {/* ---------- SIGNUP POPUP ---------- */}
-      {showSignup && (
-        <div className="popup-overlay">
-          <div className="popup-box">
-            <div className="popup-header">Sign Up</div>
-            <input type="text" placeholder="Username" className="popup-input" />
-            <input type="password" placeholder="Password" className="popup-input" />
-            <button className="popup-btn" onClick={() => navigate("/signup")}>Create Account</button>
-            <button className="popup-close" onClick={() => setShowSignup(false)}>Close</button>
-          </div>
-        </div>
-      )}
+  // -------- LOGIN FUNCTION --------
+  const handleLogin = async () => {
+    try {
+      const res = await fetch(`${API_URL}/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: loginUsername, password: loginPassword })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        localStorage.setItem("token", data.token);
+        setMessage("Login successful!");
+        setShowLogin(false);
+        setLoginUsername("");
+        setLoginPassword("");
+        navigate("/closet"); // Redirect after login
+      } else {
+        setMessage(data.msg || "Login failed");
+      }
+    } catch (err) {
+      console.error(err);
+      setMessage("Server error during login");
+    }
+  };
 
-      {/* ---------- LOGIN POPUP ---------- */}
-      {showLogin && (
-        <div className="popup-overlay">
-          <div className="popup-box">
-            <div className="popup-header">Login</div>
-            <input type="text" placeholder="Username" className="popup-input" />
-            <input type="password" placeholder="Password" className="popup-input" />
-            <button className="popup-btn" onClick={() => navigate("/login")}>Login</button>
-            <button className="popup-close" onClick={() => setShowLogin(false)}>Close</button>
-          </div>
-        </div>
-      )}
-    </div>
-  );
+  return (
+    <div className="home-container">
+      <Squares 
+        speed={0.5} 
+        squareSize={40}
+        direction='diagonal'
+        borderColor='#fff'
+        hoverFillColor='#222'
+      />
+
+      {/* ---------- TOP RIGHT BUTTONS ---------- */}
+      <div className="top-right-btns">
+        <button className="home-btn secondary" onClick={() => setShowSignup(true)}>Sign Up</button>
+        <button className="home-btn primary" onClick={() => setShowLogin(true)}>Login</button>
+      </div>
+
+      {/* HEADER */}
+      <div className="home-header" onClick={() => setFallen(true)}>
+        {!fallen ? (
+          <TextPressure
+            text="Throw A Fit"
+            fontFamily="Compressa VF"
+            textColor="#e44a8dff"
+            strokeColor="#FF0000"
+          />
+        ) : (
+          <FallingText
+            text="Throw A Fit"
+            trigger="auto"
+            backgroundColor="transparent"
+            wireframes={false}
+            gravity={0.56}
+            fontSize="5rem"
+            mouseConstraintStiffness={0.9}
+          />
+        )}
+      </div>
+
+      {/* ---------- FOOTER BUTTONS ---------- */}
+      <div className="home-footer">
+        <button className="home-btn secondary" onClick={() => navigate("/closet")}>Closet</button>
+        <button className="home-btn primary" onClick={() => navigate("/upload")}>Throw a Fit</button>
+        <button className="home-btn secondary" onClick={() => navigate("/upload")}>Upload</button>
+      </div>
+
+      {/* ---------- FEEDBACK MESSAGE ---------- */}
+      {message && <div className="home-message">{message}</div>}
+
+      {/* ---------- SIGNUP POPUP ---------- */}
+      {showSignup && (
+        <div className="popup-overlay">
+          <div className="popup-box">
+            <div className="popup-header">Sign Up</div>
+            <input 
+              type="text" 
+              placeholder="Username" 
+              className="popup-input"
+              value={signupUsername}
+              onChange={e => setSignupUsername(e.target.value)}
+            />
+            <input 
+              type="password" 
+              placeholder="Password" 
+              className="popup-input"
+              value={signupPassword}
+              onChange={e => setSignupPassword(e.target.value)}
+            />
+            <button className="popup-btn" onClick={handleSignup}>Create Account</button>
+            <button className="popup-close" onClick={() => setShowSignup(false)}>Close</button>
+          </div>
+        </div>
+      )}
+
+      {/* ---------- LOGIN POPUP ---------- */}
+      {showLogin && (
+        <div className="popup-overlay">
+          <div className="popup-box">
+            <div className="popup-header">Login</div>
+            <input 
+              type="text" 
+              placeholder="Username" 
+              className="popup-input"
+              value={loginUsername}
+              onChange={e => setLoginUsername(e.target.value)}
+            />
+            <input 
+              type="password" 
+              placeholder="Password" 
+              className="popup-input"
+              value={loginPassword}
+              onChange={e => setLoginPassword(e.target.value)}
+            />
+            <button className="popup-btn" onClick={handleLogin}>Login</button>
+            <button className="popup-close" onClick={() => setShowLogin(false)}>Close</button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }
