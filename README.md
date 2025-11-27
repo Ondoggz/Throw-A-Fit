@@ -33,17 +33,20 @@ At this stage, the team began planning for the integration of external APIs that
 This phase focused on frontend design planning: 
 - Began outlining more detailed interface designs and page structures for each major component of the application. 
 
+## Milestone 5 - November 18 to Present
+We are nearing completion,
 
-## Milestone 5 — November 11 Onwards 
-The final milestone encompasses the remaining development tasks required to complete the application: 
-- Finalize frontend development.
-  
-- Integrate and connect all scene pages to ensure smooth navigation. 
-- Conduct full application testing.
-  
-- Implement final adjustments and refinements based on test results.
-  
-- Prepare the application for final submission and deployment.
+The following have been completed:
+-Connection of APIs
+-Database connections on Upload and Closet page
+-Sign Up and Login frontend
+
+To be completed:
+-Frontend of Remaining Pages and tweaking for the closet
+-API endpoints' frontend (i.e. /tops, /bottoms, /accessories, /shoes)
+-Fixing of logic in closet, currently it is showing all the sample items in the database in every category.
+-backend of sign up and login (including database connection)
+
 
 ## Conclusion
 With significant backend and early frontend components already in place, the Throw A Fit project has made steady progress toward its predetermined milestones. In order to produce a web application that is both functional and aesthetically pleasing, the following phases will prioritize completing thorough testing, guaranteeing API integration, and finalizing the user interface design.
