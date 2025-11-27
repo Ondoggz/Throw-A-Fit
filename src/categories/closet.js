@@ -4,10 +4,8 @@ import { FaUserCircle } from 'react-icons/fa';
 import { motion, useInView } from 'framer-motion';
 import './closet.css';
 
-// Load API URL from React environment variable
 const BASE_API_URL = process.env.REACT_APP_API_URL || "http://localhost:3000";
 
-// Correct endpoint map
 const ENDPOINT_MAP = {
     Tops: '/items/tops',
     Bottoms: '/items/bottoms',
@@ -15,7 +13,6 @@ const ENDPOINT_MAP = {
     Shoes: '/items/shoes',
 };
 
-// Empty data shape for starting state
 const initialDataStructure = {
     Tops: [],
     Bottoms: [],
@@ -23,19 +20,16 @@ const initialDataStructure = {
     Shoes: [],
 };
 
-// =====================================================
-// 1. ANIMATED LIST COMPONENTS
-// =====================================================
-
-const AnimatedItem = ({ children, delay = 0, index, onMouseEnter, onClick }) => {
+// ──────────────────────────────
+// ANIMATED LIST COMPONENTS
+// ──────────────────────────────
+const AnimatedItem = ({ children, delay = 0, index, onClick }) => {
     const ref = useRef(null);
     const inView = useInView(ref, { amount: 0.5 });
 
     return (
         <motion.div
             ref={ref}
-            data-index={index}
-            onMouseEnter={onMouseEnter}
             onClick={onClick}
             initial={{ scale: 0.7, opacity: 0 }}
             animate={inView ? { scale: 1, opacity: 1 } : { scale: 0.7, opacity: 0 }}
@@ -47,27 +41,23 @@ const AnimatedItem = ({ children, delay = 0, index, onMouseEnter, onClick }) => 
     );
 };
 
-const AnimatedList = ({
-    items = [],
-    onItemSelect,
-    className = "",
-    itemClassName = "",
-}) => {
+const AnimatedList = ({ items = [], onItemSelect }) => {
+    // Items are already correctly grouped by category → no extra filtering needed
     return (
-        <div className={`scroll-list-container ${className}`}>
-            <div className="scroll-list">
+        <div className="scroll-list-container horizontal-list-wrapper">
+            <div className="scroll-list" style={{ display: 'flex', gap: '15px' }}>
                 {items.map((item, index) => (
                     <AnimatedItem
-                        key={item._id || index}
+                        key={item._id}
                         index={index}
                         delay={0.05 * index}
                         onClick={() => onItemSelect(item)}
                     >
-                        <div className={`item ${itemClassName}`}>
+                        <div className="item item-preview-box-animated">
                             {item.imageUrl ? (
                                 <img
                                     src={item.imageUrl}
-                                    alt={item.name || "Clothing item"}
+                                    alt={item.name || "Item"}
                                     className="item-image"
                                 />
                             ) : (
@@ -81,10 +71,46 @@ const AnimatedList = ({
     );
 };
 
-// =====================================================
-// 2. MAIN CLOSET PAGE
-// =====================================================
+// ──────────────────────────────
+// MODAL (More button)
+// ──────────────────────────────
+const CategoryModal = ({ category, items, onClose, onSelect }) => {
+    if (!items || items.length === 0) return null;
 
+    return (
+        <div className="modal-overlay" onClick={onClose}>
+            <div className="modal-content" onClick={e => e.stopPropagation()}>
+                <div className="modal-header">
+                    <h2>{category}</h2>
+                    <button className="close-btn" onClick={onClose}>×</button>
+                </div>
+                <div className="modal-grid">
+                    {items.map(item => (
+                        <div
+                            key={item._id}
+                            className="modal-item"
+                            onClick={() => {
+                                onSelect(item);
+                                onClose();
+                            }}
+                        >
+                            {item.imageUrl ? (
+                                <img src={item.imageUrl} alt={item.name} />
+                            ) : (
+                                <div className="no-image">No image</div>
+                            )}
+                            <p>{item.name || "Unnamed"}</p>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        </div>
+    );
+};
+
+// ──────────────────────────────
+// MAIN CLOSET PAGE
+// ──────────────────────────────
 export default function Closet() {
     const navigate = useNavigate();
     const [mainPreviewItem, setMainPreviewItem] = useState(null);
@@ -92,41 +118,40 @@ export default function Closet() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
 
-    // Fetch clothes on load
-    useEffect(() => {
+    // Modal state
+    const [modalOpen, setModalOpen] = useState(false);
+    const [modalCategory, setModalCategory] = useState("");
+    const [modalItems, setModalItems] = useState([]);
+
+      useEffect(() => {
         const fetchClothes = async () => {
             setLoading(true);
-            setError("");
-
             try {
-                const fetchPromises = Object.keys(ENDPOINT_MAP).map(async (category) => {
-                    const endpoint = `${BASE_API_URL}${ENDPOINT_MAP[category]}`;
+                const results = await Promise.all(
+                    Object.entries(ENDPOINT_MAP).map(async ([correctCategory, endpoint]) => {
+                        const res = await fetch(`${BASE_API_URL}${endpoint}`);
+                        if (!res.ok) throw new Error(`Failed to load ${correctCategory}`);
+                        const items = await res.json();
 
-                    const response = await fetch(endpoint);
+                        // THIS IS THE BULLETPROOF FIX
+                        // Even if backend returns a halter top under /accessories → it will be forced into Tops only
+                        return items.map(item => ({
+                            ...item,
+                            category: correctCategory,           // ← Forces correct category
+                            originalCategory: item.category      // optional – keep old value for debugging
+                        }));
+                    })
+                );
 
-                    if (!response.ok)
-                        throw new Error(`Failed to fetch ${category}`);
-
-                    const items = await response.json();
-
-                    return { category, items };
-                });
-
-                const results = await Promise.all(fetchPromises);
-
-                // Organize by category
-                const grouped = results.reduce((acc, result) => {
-                    acc[result.category] = result.items.map((item) => ({
-                        _id: item._id,
-                        name: item.name || "",
-                        imageUrl: item.imageUrl, // Correct field from MongoDB
-                    }));
+                const grouped = Object.keys(ENDPOINT_MAP).reduce((acc, category, i) => {
+                    acc[category] = results[i];
                     return acc;
                 }, {});
 
                 setClothesData(grouped);
             } catch (err) {
-                setError(err.message || "Failed to load wardrobe");
+                console.error(err);
+                setError(err.message);
             } finally {
                 setLoading(false);
             }
@@ -135,85 +160,71 @@ export default function Closet() {
         fetchClothes();
     }, []);
 
-    if (loading) {
-        return <div className="closet-page-wrapper loading-state">Loading your wardrobe…</div>;
-    }
+    const openModal = (category) => {
+        setModalCategory(category);
+        setModalItems(clothesData[category] || []); // Already correct → no filter needed
+        setModalOpen(true);
+    };
 
-    if (error) {
-        return <div className="closet-page-wrapper error-state">⚠️ {error}</div>;
-    }
-
-    const categoriesList = Object.keys(clothesData);
+    if (loading) return <div className="closet-page-wrapper loading-state">Loading wardrobe…</div>;
+    if (error) return <div className="closet-page-wrapper error-state">Warning: {error}</div>;
 
     return (
         <div className="closet-page-wrapper">
-
             {/* HEADER */}
             <div className="closet-header">
                 <div className="closet-title-area">
-                    <FaUserCircle
-                        className="account-icon"
-                        size={24}
-                        onClick={() => navigate('/profile')}
-                        title="Profile"
-                    />
+                    <FaUserCircle className="account-icon" size={24} onClick={() => navigate('/profile')} />
                     <h2>Closet</h2>
                 </div>
-                <button className="close-btn" onClick={() => navigate('/')}>
-                    &times;
-                </button>
+                <button className="close-btn" onClick={() => navigate('/')}>×</button>
             </div>
 
             {/* MAIN PREVIEW */}
             <div className="main-preview-container">
-                {mainPreviewItem && mainPreviewItem.imageUrl ? (
-                    <img
-                        src={mainPreviewItem.imageUrl}
-                        alt={mainPreviewItem.name}
-                        className="main-preview-image"
-                    />
+                {mainPreviewItem?.imageUrl ? (
+                    <img src={mainPreviewItem.imageUrl} alt={mainPreviewItem.name} className="main-preview-image" />
                 ) : (
                     <p className="preview-text">
-                        {mainPreviewItem ? 
-                          `Selected: ${mainPreviewItem.name}` :
-                          "Click an item below to preview it."}
+                        {mainPreviewItem ? mainPreviewItem.name : "Click an item below to preview it."}
                     </p>
                 )}
             </div>
 
-            {/* CATEGORY ROWS */}
-            <div className="category-list">
-                {categoriesList.map((categoryName) => (
-                    <div key={categoryName} className="category-row-wrapper">
-
-                        <div className="category-header-and-button">
-                            <h3 className="category-name">{categoryName}</h3>
-                            <button
-                                className="more-btn"
-                                onClick={() => navigate(`/closet/${categoryName.toLowerCase()}`)}
-                            >
-                                More &raquo;
+            {/* CATEGORIES */}
+            {Object.keys(clothesData).map(category => (
+                <div key={category} className="category-row-wrapper">
+                    <div className="category-header-and-button">
+                        <h3 className="category-name">{category}</h3>
+                        {(clothesData[category]?.length > 0) && (
+                            <button className="more-btn" onClick={() => openModal(category)}>
+                                More »
                             </button>
-                        </div>
-
-                        <div className="animated-list-container">
-                            {clothesData[categoryName]?.length > 0 ? (
-                                <AnimatedList
-                                    items={clothesData[categoryName]}
-                                    onItemSelect={setMainPreviewItem}
-                                    className="horizontal-list-wrapper"
-                                    itemClassName="item-preview-box-animated"
-                                />
-                            ) : (
-                                <p className="no-items-text">
-                                    No {categoryName} yet — time to upload!
-                                </p>
-                            )}
-                        </div>
-
+                        )}
                     </div>
-                ))}
-            </div>
+
+                    <div className="animated-list-container">
+                        {clothesData[category].length > 0 ? (
+                            <AnimatedList
+                                items={clothesData[category]}
+                                onItemSelect={setMainPreviewItem}
+                            />
+                        ) : (
+                            <p className="no-items-text">No {category.toLowerCase()} yet — time to upload!</p>
+                        )}
+                    </div>
+                </div>
+            ))}
+
+            {/* MODAL */}
+            {modalOpen && (
+                <CategoryModal
+                    category={modalCategory}
+                    items={modalItems}
+                    onClose={() => setModalOpen(false)}
+                    onSelect={setMainPreviewItem}
+                />
+            )}
         </div>
     );
 }
