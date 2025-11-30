@@ -1,5 +1,6 @@
+
 import React, { useRef, useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { FaUserCircle } from 'react-icons/fa';
 import { motion, useInView } from 'framer-motion';
 import './closet.css';
@@ -20,9 +21,7 @@ const initialDataStructure = {
     Shoes: [],
 };
 
-// ─────────────────────────────────────────
 // DRAGGABLE PREVIEW ITEM COMPONENT
-// ─────────────────────────────────────────
 const DraggablePreviewItem = ({ item, index, onDragStart, onRemove }) => {
     const ref = useRef(null);
 
@@ -34,10 +33,6 @@ const DraggablePreviewItem = ({ item, index, onDragStart, onRemove }) => {
         onDragStart(index, offsetX, offsetY);
     };
 
-    const handleDoubleClick = () => {
-        onRemove(index);
-    };
-
     return (
         <img
             ref={ref}
@@ -46,16 +41,14 @@ const DraggablePreviewItem = ({ item, index, onDragStart, onRemove }) => {
             className="preview-layer-item"
             style={{ top: `${item.y}px`, left: `${item.x}px`, zIndex: index + 10 }}
             onMouseDown={handleMouseDown}
-            onDoubleClick={handleDoubleClick}
+            onDoubleClick={() => onRemove(index)}
             draggable={false}
         />
     );
 };
 
-// ──────────────────────────────
-// ANIMATED LIST COMPONENTS
-// ──────────────────────────────
-const AnimatedItem = ({ children, delay = 0, index, onClick }) => {
+// ANIMATED ITEM & LIST
+const AnimatedItem = ({ children, delay = 0, onClick }) => {
     const ref = useRef(null);
     const inView = useInView(ref, { amount: 0.5 });
 
@@ -77,88 +70,42 @@ const AnimatedList = ({ items = [], onItemSelect }) => {
     return (
         <div className="scroll-list-container horizontal-list-wrapper">
             <div className="scroll-list" style={{ display: 'flex', gap: '15px' }}>
-                {items.map((item, index) => (
-                    <AnimatedItem
-                        key={item._id || `${item.name}-${index}`}
-                        index={index}
-                        delay={0.05 * index}
-                        onClick={() => onItemSelect(item)}
-                    >
-                        <div className="item item-preview-box-animated">
-                            {item.imageUrl ? (
-                                <img
-                                    src={item.imageUrl}
-                                    alt={item.name || "Item"}
-                                    className="item-image"
-                                />
-                            ) : (
-                                <p className="item-text">No image</p>
-                            )}
-                        </div>
-                    </AnimatedItem>
-                ))}
-            </div>
-        </div>
-    );
-};
-
-// ──────────────────────────────
-// MODAL (More button)
-// ──────────────────────────────
-const CategoryModal = ({ category, items, onClose, onSelect }) => {
-    if (!items || items.length === 0) return null;
-
-    return (
-        <div className="modal-overlay" onClick={onClose}>
-            <div className="modal-content" onClick={e => e.stopPropagation()}>
-                <div className="modal-header">
-                    <h2>{category}</h2>
-                    <button className="close-btn" onClick={onClose}>×</button>
-                </div>
-                <div className="modal-grid">
-                    {items.map(item => (
-                        <div
-                            key={item._id || item.name}
-                            className="modal-item"
-                            onClick={() => {
-                                onSelect(item);
-                                onClose();
-                            }}
+                {items.length === 0 ? (
+                    <p className="no-items-text" style={{ color: '#999', padding: '20px 0' }}>
+                        No items yet
+                    </p>
+                ) : (
+                    items.map((item, index) => (
+                        <AnimatedItem
+                            key={item._id || `${item.name}-${index}`}
+                            delay={0.05 * index}
+                            onClick={() => onItemSelect(item)}
                         >
-                            {item.imageUrl ? (
-                                <img src={item.imageUrl} alt={item.name} />
-                            ) : (
-                                <div className="no-image">No image</div>
-                            )}
-                            <p>{item.name || "Unnamed"}</p>
-                        </div>
-                    ))}
-                </div>
+                            <div className="item item-preview-box-animated">
+                                {item.imageUrl ? (
+                                    <img src={item.imageUrl} alt={item.name || "Item"} className="item-image" />
+                                ) : (
+                                    <p className="item-text">No image</p>
+                                )}
+                            </div>
+                        </AnimatedItem>
+                    ))
+                )}
             </div>
         </div>
     );
 };
 
-// ──────────────────────────────
 // MAIN CLOSET PAGE
-// ──────────────────────────────
 export default function Closet() {
     const navigate = useNavigate();
+    const location = useLocation();
     const [mainPreviewItem, setMainPreviewItem] = useState(null);
     const [clothesData, setClothesData] = useState(initialDataStructure);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
-
-    // Modal state
-    const [modalOpen, setModalOpen] = useState(false);
-    const [modalCategory, setModalCategory] = useState("");
-    const [modalItems, setModalItems] = useState([]);
-
-    // Draggable preview stack state
     const [previewItems, setPreviewItems] = useState([]);
     const previewRef = useRef(null);
-
-    // Dragging refs
     const draggingRef = useRef({ index: -1, offsetX: 0, offsetY: 0 });
 
     useEffect(() => {
@@ -170,11 +117,10 @@ export default function Closet() {
                         const res = await fetch(`${BASE_API_URL}${endpoint}`);
                         if (!res.ok) throw new Error(`Failed to load ${correctCategory}`);
                         const items = await res.json();
-
                         return items.map(item => ({
                             ...item,
-                            category: correctCategory,                  // Forces display category
-                            originalCategory: (item.category || "").toString().trim().toLowerCase()  // Normalize backend category
+                            category: correctCategory,
+                            originalCategory: (item.category || "").toString().trim().toLowerCase()
                         }));
                     })
                 );
@@ -192,48 +138,34 @@ export default function Closet() {
                 setLoading(false);
             }
         };
-
         fetchClothes();
     }, []);
 
-    // Open modal - show items that likely belong to that category
-    const openModal = (category) => {
-        setModalCategory(category);
-        setModalItems(
-            (clothesData[category] || []).filter(
-                item => item.originalCategory.toString().toLowerCase() === category.toLowerCase()
-            )
-        );
-        setModalOpen(true);
+    // Auto-add item when returning from category page
+    useEffect(() => {
+        if (location.state?.addToPreview) {
+            addItemToPreview(location.state.addToPreview);
+            navigate('/closet', { replace: true });
+        }
+    }, [location.state]);
+
+    const openCategoryPage = (category) => {
+        navigate(`/closet/${category.toLowerCase()}`);
     };
 
-    // Add item to the preview stack (centered by default)
     const addItemToPreview = (item) => {
-        // set main preview too for immediate single-image fallback
         setMainPreviewItem(item);
-
         const rect = previewRef.current?.getBoundingClientRect();
-        const defaultWidth = 200;
-        const defaultHeight = 200;
-        const centerX = rect ? Math.max((rect.width - defaultWidth) / 2, 0) : 50;
-        const centerY = rect ? Math.max((rect.height - defaultHeight) / 2, 0) : 50;
+        const centerX = rect ? Math.max((rect.width - 200) / 2, 0) : 50;
+        const centerY = rect ? Math.max((rect.height - 200) / 2, 0) : 50;
 
-        setPreviewItems(prev => ([
-            ...prev,
-            {
-                ...item,
-                x: centerX,
-                y: centerY
-            }
-        ]));
+        setPreviewItems(prev => [...prev, { ...item, x: centerX, y: centerY }]);
     };
 
-    // Remove item from preview stack
     const removePreviewItem = (index) => {
         setPreviewItems(prev => prev.filter((_, i) => i !== index));
     };
 
-    // Start dragging - triggered by DraggablePreviewItem
     const handleDragStart = (index, offsetX, offsetY) => {
         draggingRef.current = { index, offsetX, offsetY };
         window.addEventListener('mousemove', handleMouseMove);
@@ -245,10 +177,8 @@ export default function Closet() {
         if (index < 0) return;
         const rect = previewRef.current?.getBoundingClientRect();
         if (!rect) return;
-
         const newX = e.clientX - rect.left - offsetX;
         const newY = e.clientY - rect.top - offsetY;
-
         setPreviewItems(prev => prev.map((it, i) => i === index ? { ...it, x: Math.max(newX, 0), y: Math.max(newY, 0) } : it));
     };
 
@@ -272,65 +202,54 @@ export default function Closet() {
                 <button className="close-btn" onClick={() => navigate('/')}>×</button>
             </div>
 
-            {/* MAIN PREVIEW - upgraded with draggable stack */}
+            {/* MAIN PREVIEW AREA */}
             <div className="upgraded-preview" ref={previewRef}>
-                {/* If there are previewItems, render them stacked/draggable */}
                 {previewItems.length > 0 ? (
                     previewItems.map((item, i) => (
                         <DraggablePreviewItem
-                            key={item._id || `${item.name}-${i}`}
+                            key={item._id || i}
                             item={item}
                             index={i}
                             onDragStart={handleDragStart}
                             onRemove={removePreviewItem}
                         />
                     ))
+                ) : mainPreviewItem?.imageUrl ? (
+                    <img src={mainPreviewItem.imageUrl} alt={mainPreviewItem.name} className="main-preview-image" />
                 ) : (
-                    // Fallback single image preview when the stack is empty
-                    mainPreviewItem?.imageUrl ? (
-                        <img src={mainPreviewItem.imageUrl} alt={mainPreviewItem.name} className="main-preview-image" />
-                    ) : (
-                        <p className="preview-text">{mainPreviewItem ? mainPreviewItem.name : "Click an item below to preview it."}</p>
-                    )
+                    <p className="preview-text">Click an item below to preview it.</p>
                 )}
             </div>
 
-            {/* CATEGORIES */}
+            {/* CATEGORIES WITH ALWAYS-VISIBLE "More »" BUTTON */}
             {Object.keys(clothesData).map(category => {
                 const filteredItems = (clothesData[category] || []).filter(
-                    item => item.originalCategory.toString().toLowerCase() === category.toLowerCase()
+                    item => item.originalCategory === category.toLowerCase()
                 );
 
                 return (
                     <div key={category} className="category-row-wrapper">
                         <div className="category-header-and-button">
                             <h3 className="category-name">{category}</h3>
-                            {filteredItems.length > 0 && (
-                                <button className="more-btn" onClick={() => openModal(category)}>
-                                    More »
-                                </button>
-                            )}
+                            
+                            {/* "More »" button is now ALWAYS visible */}
+                            <button
+                                className="more-btn"
+                                onClick={() => openCategoryPage(category)}
+                            >
+                                More »
+                            </button>
                         </div>
 
                         <div className="animated-list-container">
                             <AnimatedList
-                                items={filteredItems}
+                                items={filteredItems.slice(0, 10)}
                                 onItemSelect={addItemToPreview}
                             />
                         </div>
                     </div>
                 );
             })}
-
-            {/* MODAL */}
-            {modalOpen && (
-                <CategoryModal
-                    category={modalCategory}
-                    items={modalItems}
-                    onClose={() => setModalOpen(false)}
-                    onSelect={addItemToPreview}
-                />
-            )}
         </div>
     );
 }

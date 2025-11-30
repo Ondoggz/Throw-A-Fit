@@ -39,7 +39,7 @@
     line-height: 1;
 }
 
-/* 1. MAIN PREVIEW RECTANGLE (Encompassing the full page width) */
+
 .main-preview-container {
     background-color: #170d27; /* Dark background for preview */
     height: 350px; /* A bit taller for impact */
