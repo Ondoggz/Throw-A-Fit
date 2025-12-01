@@ -1,149 +1,195 @@
-import React, { useRef, useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { FaUserCircle } from 'react-icons/fa';
-import { motion, useInView } from 'framer-motion';
-import './closet.css';
+import React, { useEffect, useState, useRef } from "react";
+import { useNavigate } from "react-router-dom";
+import { FaUserCircle } from "react-icons/fa";
+import { motion, useInView } from "framer-motion";
+import { useCloset } from "../categories/ClosetContext";
+import "./closet.css";
 
-const BASE_API_URL = process.env.REACT_APP_API_URL || "http://localhost:3000";
+const BASE_API_URL = process.env.REACT_APP_API_URL || "https://throw-a-fit.onrender.com/api";
 
+const ENDPOINT_MAP = {
+  Tops: "/items/tops",
+  Bottoms: "/items/bottoms",
+  Accessories: "/items/accessories",
+  Shoes: "/items/shoes",
+};
+
+// ────────── DRAGGABLE ITEM ──────────
+const DraggablePreviewItem = ({ item, index, onDragStart, onRemove }) => {
+  const ref = useRef(null);
+
+  const handleMouseDown = (e) => {
+    if (!ref.current) return;
+    const rect = ref.current.getBoundingClientRect();
+    onDragStart(index, e.clientX - rect.left, e.clientY - rect.top);
+  };
+
+  // Right-click to remove
+  const handleContextMenu = (e) => {
+    e.preventDefault(); // Prevent browser context menu
+    onRemove(index);
+  };
+
+  return (
+    <img
+      ref={ref}
+      src={item.imageUrl}
+      alt={item.name}
+      className="preview-layer-item"
+      style={{ top: `${item.y}px`, left: `${item.x}px`, zIndex: index + 10 }}
+      onMouseDown={handleMouseDown}
+      onContextMenu={handleContextMenu} // <-- new
+      draggable={false}
+    />
+  );
+};
+
+
+// ────────── ANIMATED LIST ──────────
+const AnimatedItem = ({ children, delay = 0, onClick }) => {
+  const ref = useRef(null);
+  const inView = useInView(ref, { amount: 0.5 });
+
+  return (
+    <motion.div
+      ref={ref}
+      onClick={onClick}
+      initial={{ scale: 0.7, opacity: 0 }}
+      animate={inView ? { scale: 1, opacity: 1 } : { scale: 0.7, opacity: 0 }}
+      transition={{ duration: 0.2, delay }}
+      style={{ cursor: "pointer", flexShrink: 0 }}
+    >
+      {children}
+    </motion.div>
+  );
+};
+
+const AnimatedList = ({ items = [], onItemSelect }) => (
+  <div className="scroll-list-container horizontal-list-wrapper">
+    <div className="scroll-list" style={{ display: "flex", gap: "15px" }}>
+      {items.map((item, index) => (
+        <AnimatedItem key={item._id || `${item.name}-${index}`} delay={0.05 * index} onClick={() => onItemSelect(item)}>
+          <div className="item item-preview-box-animated">
+            {item.imageUrl ? <img src={item.imageUrl} alt={item.name} className="item-image" /> : <p className="item-text">No image</p>}
+          </div>
+        </AnimatedItem>
+      ))}
+    </div>
+  </div>
+);
+
+// ────────── CLOSET ──────────
 export default function Closet() {
-    const navigate = useNavigate();
-    const location = useLocation();
-    const [clothesData, setClothesData] = useState({
-        Tops: [], Bottoms: [], Accessories: [], Shoes: []
-    });
-    const [loading, setLoading] = useState(true);
-    const [previewItems, setPreviewItems] = useState([]);
-    const previewRef = useRef(null);
+  const navigate = useNavigate();
+  const { previewItems, mainPreviewItem, addItemToPreview, removeItemFromPreview, updateItemPosition } = useCloset();
 
-    useEffect(() => {
-        const fetchClothes = async () => {
-            setLoading(true);
-            const categories = [
-                { name: 'Tops', endpoint: '/items/tops' },
-                { name: 'Bottoms', endpoint: '/items/bottoms' },
-                { name: 'Accessories', endpoint: '/items/accessories' },
-                { name: 'Shoes', endpoint: '/items/shoes' }
-            ];
+  const [clothesData, setClothesData] = useState({ Tops: [], Bottoms: [], Accessories: [], Shoes: [] });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-            try {
-                const results = await Promise.all(
-                    categories.map(async ({ name, endpoint }) => {
-                        const res = await fetch(`${BASE_API_URL}${endpoint}`);
-                        if (!res.ok) return [];
-                        const items = await res.json();
-                        
-                        return items.filter(item => item.category?.toLowerCase() === name.toLowerCase());
-                    })
-                );
+  const previewRef = useRef(null);
+  const draggingRef = useRef({ index: -1, offsetX: 0, offsetY: 0 });
 
-                setClothesData({
-                    Tops: results[0],
-                    Bottoms: results[1],
-                    Accessories: results[2],
-                    Shoes: results[3]
-                });
-            } catch (err) {
-                console.error("Fetch error:", err);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchClothes();
-    }, []);
-
-    
-    useEffect(() => {
-        if (location.state?.addToPreview) {
-            const item = location.state.addToPreview;
-            const rect = previewRef.current?.getBoundingClientRect();
-            const centerX = rect ? (rect.width - 200) / 2 : 100;
-            const centerY = rect ? (rect.height - 300) / 2 : 100;
-            setPreviewItems(prev => [...prev, { ...item, x: centerX, y: centerY }]);
-            navigate('/closet', { replace: true });
-        }
-    }, [location.state, navigate]);
-
-    const openCategoryPage = (category) => {
-        
-        const items = clothesData[category]?.filter(item => item.category?.toLowerCase() === category.toLowerCase()) || [];
-        navigate(`/closet/${category.toLowerCase()}`, { state: { items } });
+  useEffect(() => {
+    const fetchClothes = async () => {
+      setLoading(true);
+      try {
+        const results = await Promise.all(
+          Object.entries(ENDPOINT_MAP).map(async ([category, endpoint]) => {
+            const res = await fetch(`${BASE_API_URL}${endpoint}`);
+            if (!res.ok) throw new Error(`Failed to load ${category}`);
+            const items = await res.json();
+            return items.map(item => ({
+              ...item,
+              category,
+              originalCategory: (item.category || "").toLowerCase(),
+            }));
+          })
+        );
+        const grouped = Object.keys(ENDPOINT_MAP).reduce((acc, category, i) => {
+          acc[category] = results[i];
+          return acc;
+        }, {});
+        setClothesData(grouped);
+      } catch (err) {
+        setError(err.message || "Failed to load items");
+      } finally {
+        setLoading(false);
+      }
     };
+    fetchClothes();
+  }, []);
 
-    const addToPreview = (item) => {
-        const rect = previewRef.current?.getBoundingClientRect();
-        const centerX = rect ? (rect.width - 200) / 2 : 100;
-        const centerY = rect ? (rect.height - 300) / 2 : 100;
-        setPreviewItems(prev => [...prev, { ...item, x: centerX, y: centerY }]);
-    };
+  // ─── DRAG HANDLERS ───
+  const handleDragStart = (index, offsetX, offsetY) => {
+    draggingRef.current = { index, offsetX, offsetY };
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mouseup", handleMouseUp);
+  };
 
-    if (loading) return <div className="closet-page-wrapper">Loading wardrobe…</div>;
+  const handleMouseMove = (e) => {
+    const { index, offsetX, offsetY } = draggingRef.current;
+    if (index < 0) return;
+    const rect = previewRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    const newX = e.clientX - rect.left - offsetX;
+    const newY = e.clientY - rect.top - offsetY;
+    updateItemPosition(index, newX, newY);
+  };
 
-    return (
-        <div className="closet-page-wrapper">
-            <div className="closet-header">
-                <div className="closet-title-area">
-                    <FaUserCircle className="account-icon" size={24} onClick={() => navigate('/profile')} />
-                    <h2>Closet</h2>
-                </div>
-                <button className="close-btn" onClick={() => navigate('/')}>×</button>
-            </div>
+  const handleMouseUp = () => {
+    draggingRef.current = { index: -1, offsetX: 0, offsetY: 0 };
+    window.removeEventListener("mousemove", handleMouseMove);
+    window.removeEventListener("mouseup", handleMouseUp);
+  };
 
-            <div className="upgraded-preview" ref={previewRef}>
-                {previewItems.length > 0 ? (
-                    previewItems.map((item, i) => (
-                        <img
-                            key={i}
-                            src={item.imageUrl}
-                            alt={item.name}
-                            className="preview-layer-item"
-                            style={{ top: item.y, left: item.x, zIndex: i + 10 }}
-                            onDoubleClick={() => setPreviewItems(prev => prev.filter((_, idx) => idx !== i))}
-                        />
-                    ))
-                ) : (
-                    <p className="preview-text">Click any item to add it here</p>
-                )}
-            </div>
+  if (loading) return <div className="closet-page-wrapper loading-state">Loading wardrobe…</div>;
+  if (error) return <div className="closet-page-wrapper error-state">Warning: {error}</div>;
 
-            {['Tops', 'Bottoms', 'Accessories', 'Shoes'].map(category => {
-                const items = clothesData[category]?.filter(item => item.category?.toLowerCase() === category.toLowerCase()) || [];
-
-                return (
-                    <div key={category} className="category-row-wrapper">
-                        <div className="category-header-and-button">
-                            <h3 className="category-name">{category}</h3>
-                            <button className="more-btn" onClick={() => openCategoryPage(category)}>
-                                More »
-                            </button>
-                        </div>
-
-                        <div className="animated-list-container">
-                            <div style={{ display: 'flex', gap: '15px', padding: '10px 0' }}>
-                                {items.length === 0 ? (
-                                    <p style={{ color: '#999' }}>No items yet</p>
-                                ) : (
-                                    items.slice(0, 10).map((item, idx) => (
-                                        <motion.div
-                                            key={item._id || idx}
-                                            initial={{ scale: 0.8, opacity: 0 }}
-                                            animate={{ scale: 1, opacity: 1 }}
-                                            transition={{ delay: idx * 0.05 }}
-                                            style={{ cursor: 'pointer', flexShrink: 0 }}
-                                            onClick={() => addToPreview(item)}
-                                        >
-                                            <div className="item item-preview-box-animated">
-                                                <img src={item.imageUrl} alt={item.name} className="item-image" />
-                                            </div>
-                                        </motion.div>
-                                    ))
-                                )}
-                            </div>
-                        </div>
-                    </div>
-                );
-            })}
+  return (
+    <div className="closet-page-wrapper">
+      {/* HEADER */}
+      <div className="closet-header">
+        <div className="closet-title-area">
+          <FaUserCircle className="account-icon" size={24} onClick={() => navigate("/profile")} />
+          <h2>Closet</h2>
         </div>
-    );
+        <button className="close-btn" onClick={() => navigate("/")}>×</button>
+      </div>
+
+      {/* MAIN PREVIEW */}
+      <div className="upgraded-preview" ref={previewRef}>
+        {previewItems.length > 0 ? (
+          previewItems.map((item, i) => (
+            <DraggablePreviewItem key={item._id || `${item.name}-${i}`} item={item} index={i} onDragStart={handleDragStart} onRemove={removeItemFromPreview} />
+          ))
+        ) : mainPreviewItem?.imageUrl ? (
+          <img src={mainPreviewItem.imageUrl} alt={mainPreviewItem.name} className="main-preview-image" />
+        ) : (
+          <p className="preview-text">Click an item below to preview it.</p>
+        )}
+      </div>
+
+      {/* CATEGORIES */}
+      {Object.keys(clothesData).map(category => {
+        const filteredItems = (clothesData[category] || []).filter(item => item.originalCategory === category.toLowerCase());
+        return (
+          <div key={category} className="category-row-wrapper">
+            <div className="category-header-and-button">
+              <h3 className="category-name">{category}</h3>
+              {filteredItems.length > 0 && (
+                <button className="more-btn" onClick={() => navigate(`/items/${category.toLowerCase()}`)}>More »</button>
+              )}
+            </div>
+            <div className="animated-list-container">
+              <AnimatedList
+                items={filteredItems}
+                onItemSelect={(item) => addItemToPreview(item, previewRef.current?.offsetWidth, previewRef.current?.offsetHeight)}
+              />
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
 }
