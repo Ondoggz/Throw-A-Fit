@@ -5,10 +5,9 @@ import { useCloset } from "../categories/ClosetContext";
 import { motion, useInView } from "framer-motion";
 import "./closet.css"; // reuse closet styles
 
-const BASE_API_URL =
-  process.env.REACT_APP_API_URL || "https://throw-a-fit.onrender.com/api";
+const BASE_API_URL = process.env.REACT_APP_API_URL || "https://throw-a-fit.onrender.com/api";
 
-// Animated item for horizontal list
+// ─── Animated Item for Horizontal List ───
 const AnimatedItem = ({ children, delay = 0, onClick }) => {
   const ref = useRef(null);
   const inView = useInView(ref, { amount: 0.5 });
@@ -49,10 +48,12 @@ const AnimatedList = ({ items = [], onItemSelect }) => (
   </div>
 );
 
+// ─── CategoryPage Component ───
 export default function CategoryPage() {
   const { category } = useParams();
   const navigate = useNavigate();
-  const { addItemToPreview } = useCloset();
+  const { addItemToPreview, previewItems, mainPreviewItem, setPreviewItems, setMainPreviewItem } =
+    useCloset();
 
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -64,9 +65,26 @@ export default function CategoryPage() {
     const fetchItems = async () => {
       setLoading(true);
       setError("");
+
       try {
-        const res = await fetch(`${BASE_API_URL}/items/${category}`);
+        const token = localStorage.getItem("token");
+        if (!token) throw new Error("User not authenticated");
+
+        // Reset preview items when a new fetch occurs
+        if (previewItems.length > 0 || mainPreviewItem) {
+          setPreviewItems([]);
+          setMainPreviewItem(null);
+        }
+
+        const res = await fetch(`${BASE_API_URL}/items/${category}?t=${Date.now()}`, {
+          headers: {
+            Authorization: `Bearer ${token}`, // only Authorization header
+          },
+          cache: "no-store", // prevent browser caching
+        });
+
         if (!res.ok) throw new Error("Failed to load items");
+
         const data = await res.json();
         setItems(data);
       } catch (err) {
@@ -75,8 +93,9 @@ export default function CategoryPage() {
         setLoading(false);
       }
     };
+
     fetchItems();
-  }, [category]);
+  }, [category]); // fetch on category change
 
   const handleSelect = (item) => {
     const rect = listRef.current?.getBoundingClientRect();

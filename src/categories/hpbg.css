@@ -226,3 +226,28 @@
   cursor: pointer;
   font-size: 0.9rem;
 }
+
+.home-profile-icon {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.2);
+  backdrop-filter: blur(6px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  z-index: 20;
+  transition: 0.2s ease;
+}
+
+.home-profile-icon:hover {
+  background: rgba(255,255,255,0.35);
+}
+
+.profile-icon-react {
+  color: white;
+}
