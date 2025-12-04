@@ -85,8 +85,6 @@ export default function Home() {
       setLoginUsername("");
       setLoginPassword("");
 
-      // 5️⃣ Navigate to closet
-      navigate("/closet");
     } catch (err) {
       console.error(err);
       setMessage("Server error during login");
