@@ -10,11 +10,20 @@ export default function Upload() {
   const [file, setFile] = useState(null);
   const [itemName, setItemName] = useState("");
   const [itemCategory, setItemCategory] = useState("tops");
+
+  const [color, setColor] = useState("");
+  const [pattern, setPattern] = useState("");
+  const [style, setStyle] = useState("");
+
   const [warning, setWarning] = useState("");
 
   const dropRef = useRef(null);
 
   const categories = ["tops", "bottoms", "shoes", "accessories"];
+  const colors = ["black", "white", "red", "blue"];
+  const patterns = ["plain", "striped", "checkered"];
+  const styles = ["casual", "formal", "sporty"];
+
   const API_URL = process.env.REACT_APP_API_URL;
 
   /* ---------------- IMAGE VALIDATION ---------------- */
@@ -61,9 +70,7 @@ export default function Upload() {
     const looksLikeClothes = await validateClothingImage(selectedFile);
 
     if (!looksLikeClothes) {
-      setWarning(
-        "⚠️ This image may not be clothing. Please upload clothing items only."
-      );
+      setWarning("⚠️ This image may not be clothing. Please upload clothing items only.");
     } else {
       setWarning("");
     }
@@ -74,13 +81,17 @@ export default function Upload() {
   const handleUpload = async () => {
     if (!user) return alert("You must be logged in to upload items!");
     if (!file || !itemName || !itemCategory)
-      return alert("Complete all fields!");
+      return alert("Please complete all required fields.");
 
     const token = localStorage.getItem("token");
+
     const formData = new FormData();
     formData.append("image", file);
     formData.append("name", itemName);
     formData.append("category", itemCategory);
+    formData.append("color", color);
+    formData.append("pattern", pattern);
+    formData.append("style", style);
 
     try {
       const res = await fetch(`${API_URL}/upload`, {
@@ -94,10 +105,15 @@ export default function Upload() {
       const data = await res.json();
       alert(`Upload complete! Item: ${data.item.name}`);
 
+      // Reset form
       setFile(null);
       setItemName("");
       setItemCategory("tops");
+      setColor("");
+      setPattern("");
+      setStyle("");
       setWarning("");
+
     } catch (err) {
       console.error(err);
       alert("Upload failed. Check console.");
@@ -155,6 +171,27 @@ export default function Upload() {
             <option key={cat} value={cat}>
               {cat.toUpperCase()}
             </option>
+          ))}
+        </select>
+
+        <select value={color} onChange={e => setColor(e.target.value)}>
+          <option value="">Select Color (optional)</option>
+          {colors.map(c => (
+            <option key={c} value={c}>{c.toUpperCase()}</option>
+          ))}
+        </select>
+
+        <select value={pattern} onChange={e => setPattern(e.target.value)}>
+          <option value="">Select Pattern (optional)</option>
+          {patterns.map(p => (
+            <option key={p} value={p}>{p.toUpperCase()}</option>
+          ))}
+        </select>
+
+        <select value={style} onChange={e => setStyle(e.target.value)}>
+          <option value="">Select Style (optional)</option>
+          {styles.map(s => (
+            <option key={s} value={s}>{s.toUpperCase()}</option>
           ))}
         </select>
 
